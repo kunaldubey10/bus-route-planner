@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transport Inquiry System</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #0F2027, #203A43, #2C5364);
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 12px 20px;
+            border-radius: 5px;
+            border: none;
+            background: #ff9800;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #ff6500;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🚌  Transport Inquiry System</h2>
+        <p>Enter or speak your locations to find the best route.</p>
+        
+        <div class="input-group">
+            <input type="text" id="startLocation" placeholder="Start Location">
+            <button onclick="startVoiceRecognition('startLocation')">🎤</button>
+        </div>
+        
+        <div class="input-group">
+            <input type="text" id="endLocation" placeholder="Destination">
+            <button onclick="startVoiceRecognition('endLocation')">🎤</button>
+        </div>
+        
+        <button id="searchBtn">🔍 Find Route</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function startVoiceRecognition(inputId) {
+            let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = "en-US";
+            recognition.start();
+            
+            recognition.onresult = function(event) {
+                document.getElementById(inputId).value = event.results[0][0].transcript;
+            };
+        }
+
+        document.getElementById("searchBtn").addEventListener("click", function() {
+            let startLocation = document.getElementById("startLocation").value.trim();
+            let endLocation = document.getElementById("endLocation").value.trim();
+
+            if (!startLocation || !endLocation) {
+                alert("Please enter both locations!");
+                return;
+            }
+
+            fetch("/search", {
+                method: "POST",
+                body: JSON.stringify({ start_location: startLocation, end_location: endLocation }),
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => response.json())
+            .then(data => {
+                let resultDiv = document.getElementById("result");
+                resultDiv.innerHTML = "";
+
+                if (data.routes && data.routes.length > 0) {
+                    data.routes.forEach(route => {
+                        resultDiv.innerHTML += `🚍 <strong>Bus Number:</strong> ${route.bus_number} <br>
+                                                📍 <strong>Route:</strong> ${route.route_description} <br><hr>`;
+                    });
+                } else {
+                    resultDiv.innerHTML = "❌ No route found.";
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    </script>
+</body>
+</html>
