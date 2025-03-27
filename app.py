@@ -3,12 +3,11 @@ import pymysql
 
 app = Flask(__name__)
 
-# Function to connect to MySQL database
 def get_db_connection():
     return pymysql.connect(
         host="localhost",
-        user="root",       # Change to your MySQL username
-        password="kunaldubeysql@10",  # Change to your MySQL password
+        user="root",       
+        password="kunaldubeysql@10", 
         database="bus_planner",
         cursorclass=pymysql.cursors.DictCursor
     )
